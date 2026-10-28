@@ -6,7 +6,7 @@
 //
 // 지키는 것
 // - 결과를 가공하지 않는다: 제목·발췌문에서 강조 태그(<b>)와 HTML 기호(&quot; 등)만 글자로 되돌린다.
-// - 제목·발췌문에 '서부발전' / 'KOWEPO' 가 없는 결과는 저장하지 않는다(내용·순서는 그대로, 걸러 내기만).
+// - 제목에 '서부발전' / 'KOWEPO' / 발전본부 이름이 없는 결과는 저장하지 않는다(내용·순서는 그대로, 걸러 내기만).
 // - 분류를 추측해 붙이지 않는다(모두 '기타'). 언론사 이름도 추측하지 않고 원문 주소의 도메인을 그대로 쓴다.
 // - 발췌문은 요약이 아니므로 summaryKind 'snippet'.
 // - AI 에 넣지 않는다.
@@ -180,10 +180,12 @@ export const naverSource: SourceModule = {
   isRelevant: isAboutWestPower,
 };
 
-/** 제목이나 발췌문에 서부발전을 가리키는 말이 있는지(띄어쓰기 무시). */
-const RELEVANT = /서부발전|kowepo/i;
+/**
+ * 제목에 서부발전(또는 그 발전본부)을 가리키는 말이 있는지(띄어쓰기 무시).
+ * 발췌문에만 지나가듯 나오는 기사(다른 기관 시상 명단, 다른 발전사 기사 등)는 주제가 아니므로 뺀다.
+ */
+const RELEVANT_TITLE = /서부발전|kowepo|태안발전본부|평택발전본부|서인천발전본부|군산발전본부/i;
 
-export function isAboutWestPower(item: Pick<CollectedItem, "title" | "description">): boolean {
-  const text = `${item.title} ${item.description ?? ""}`.replace(/\s+/g, "");
-  return RELEVANT.test(text);
+export function isAboutWestPower(item: Pick<CollectedItem, "title">): boolean {
+  return RELEVANT_TITLE.test(item.title.replace(/\s+/g, ""));
 }
