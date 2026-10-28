@@ -1,36 +1,34 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 서부발전 뉴스 브리핑
 
-## Getting Started
+한국서부발전 관련 뉴스를 날짜별 겹친 카드로 보여 주는 웹앱입니다.
 
-First, run the development server:
+> 현재 단계: **1단계(날짜 탐색 · 겹친 카드 · 상세 보기)** 완료.
+> DB와 뉴스 수집은 아직 연결되지 않았으며, 화면의 기사는 모두 **'시연용 데이터'** 입니다(실제 기사 아님).
+
+## 실행 방법
+
+필요한 것: Node.js 20.9 이상
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install      # 처음 한 번
+npm run dev      # 개발 서버 → http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+운영용 확인: `npm run build` 후 `npm run start`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 화면에서 확인할 것
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| 주소 | 보이는 것 |
+| --- | --- |
+| `/` | 오늘(KST) 기사 12건 — 겹친 카드, `1 / 12` |
+| `/?date=어제` | 1건 — 카드 한 장 |
+| `/?date=그제` | 0건 — "수집된 뉴스가 없어요" |
+| `/?date=사흘 전` | 수집 실패 안내 + 저장된 3건 |
+| `/?date=2주 넘게 전` | "아직 수집 기록이 없어요" |
+| `/?date=미래 또는 잘못된 값` | 오늘로 이동 |
 
-## Learn More
+조작: 날짜 화살표 · 날짜 눌러 달력 · '오늘' / 뒤 카드 클릭 · '이전/다음 기사' · 키보드 ← → · 휴대폰 좌우 밀기 / 앞 카드 클릭 → 상세, ESC 로 닫기
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 다음 단계
+- 2단계: Supabase DB 저장 · 조회 (`.env.example`, `supabase/schema.sql` 추가 예정)
+- 3단계: 뉴스 자동 수집 (출처 모듈 · 관리자 '지금 수집' · 수집 기록)
