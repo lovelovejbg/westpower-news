@@ -29,6 +29,8 @@ export interface SourceModule {
   /** 필요한 서버 환경변수 이름(값이 아님). 관리자 화면에서 빠진 것을 알려 줄 때 쓴다. */
   requiredEnv: string[];
   fetchItems(options: FetchOptions): Promise<CollectedItem[]>;
+  /** 저장해도 될 만큼 주제와 관련 있는 기사인지. 없으면 모두 저장한다. 내용은 바꾸지 않고 걸러 내기만 한다. */
+  isRelevant?(item: CollectedItem): boolean;
 }
 
 /** 다시 시도해 볼 만한 오류(일시적 장애)인지 표시한다. */

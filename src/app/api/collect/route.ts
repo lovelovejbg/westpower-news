@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   // 오류 원문은 DB 수집 기록(관리자 화면)에만 남기고, 응답에는 상태만 돌려준다.
   const body =
     outcome.status === "success"
-      ? { status: "success", fetched: outcome.fetched, newCount: outcome.newCount }
+      ? { status: "success", fetched: outcome.fetched, excluded: outcome.excluded, newCount: outcome.newCount }
       : { status: outcome.status };
   const code = outcome.status === "success" ? 200 : outcome.status === "busy" ? 409 : 500;
   return Response.json(body, { status: code });

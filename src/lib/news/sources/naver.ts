@@ -6,6 +6,7 @@
 //
 // 지키는 것
 // - 결과를 가공하지 않는다: 제목·발췌문에서 강조 태그(<b>)와 HTML 기호(&quot; 등)만 글자로 되돌린다.
+// - 제목·발췌문에 '서부발전' / 'KOWEPO' 가 없는 결과는 저장하지 않는다(내용·순서는 그대로, 걸러 내기만).
 // - 분류를 추측해 붙이지 않는다(모두 '기타'). 언론사 이름도 추측하지 않고 원문 주소의 도메인을 그대로 쓴다.
 // - 발췌문은 요약이 아니므로 summaryKind 'snippet'.
 // - AI 에 넣지 않는다.
@@ -105,9 +106,9 @@ function toItem(raw: NaverItem): CollectedItem | null {
   };
 }
 
-async function fetchPage(start: number, clientId: string, clientSecret: string): Promise<NaverItem[]> {
+async function fetchPage(query: string, start: number, clientId: string, clientSecret: string): Promise<NaverItem[]> {
   const url = `${ENDPOINT}?${new URLSearchParams({
-    query: QUERY,
+    query,
     display: String(PAGE_SIZE),
     start: String(start),
     sort: "date",
@@ -147,9 +148,17 @@ export const naverSource: SourceModule = {
     const clientSecret = process.env.NAVER_CLIENT_SECRET;
     if (!clientId || !clientSecret) throw new Error("NAVER_CLIENT_ID / NAVER_CLIENT_SECRET 환경변수가 없습니다.");
 
+    // 따옴표로 묶어 '한국 / 서부 / 발전' 으로 쪼개 찾지 않게 한다. 결과가 하나도 없으면 따옴표 없이 다시 찾는다.
+    let query = `"${QUERY}"`;
+    let firstPage = await fetchPage(query, 1, clientId, clientSecret);
+    if (firstPage.length === 0) {
+      query = QUERY;
+      firstPage = await fetchPage(query, 1, clientId, clientSecret);
+    }
+
     const items: CollectedItem[] = [];
     for (let page = 0; page < MAX_PAGES; page++) {
-      const raw = await fetchPage(page * PAGE_SIZE + 1, clientId, clientSecret);
+      const raw = page === 0 ? firstPage : await fetchPage(query, page * PAGE_SIZE + 1, clientId, clientSecret);
 
       let reachedOld = false;
       for (const r of raw) {
@@ -167,4 +176,14 @@ export const naverSource: SourceModule = {
     }
     return items;
   },
+
+  isRelevant: isAboutWestPower,
 };
+
+/** 제목이나 발췌문에 서부발전을 가리키는 말이 있는지(띄어쓰기 무시). */
+const RELEVANT = /서부발전|kowepo/i;
+
+export function isAboutWestPower(item: Pick<CollectedItem, "title" | "description">): boolean {
+  const text = `${item.title} ${item.description ?? ""}`.replace(/\s+/g, "");
+  return RELEVANT.test(text);
+}

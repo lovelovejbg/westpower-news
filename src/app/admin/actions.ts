@@ -46,7 +46,10 @@ export async function collectNow(): Promise<ActionState> {
   refresh();
   switch (outcome.status) {
     case "success":
-      return { ok: true, message: `수집 완료: 받은 기사 ${outcome.fetched}건 중 새 기사 ${outcome.newCount}건을 저장했어요.` };
+      return {
+        ok: true,
+        message: `수집 완료: 받은 기사 ${outcome.fetched}건 · 관련 없어 제외 ${outcome.excluded}건 · 새로 저장 ${outcome.newCount}건`,
+      };
     case "busy":
       return { ok: false, message: "이미 수집이 진행 중이에요. 잠시 뒤 다시 확인해 주세요." };
     case "not_configured":

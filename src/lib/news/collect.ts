@@ -11,7 +11,7 @@ import { RetryableError, type CollectedItem } from "./sources/types";
 import { getWriteDb } from "./supabase";
 
 export type CollectOutcome =
-  | { status: "success"; fetched: number; newCount: number }
+  | { status: "success"; fetched: number; excluded: number; newCount: number }
   | { status: "failed"; error: string }
   | { status: "busy" }
   | { status: "not_configured"; missing: string[] };
@@ -38,10 +38,19 @@ function errorText(e: unknown): string {
   return (e instanceof Error ? e.message : String(e)).slice(0, 1000);
 }
 
-/** 지금 설정에서 빠진 환경변수 이름 목록(값은 다루지 않는다). */
+/** 키·토큰에 들어갈 수 있는 글자(눈에 보이는 영문·숫자·기호). 화면에서 가려진 값(•)을 복사하면 여기서 걸린다. */
+const PRINTABLE_ASCII = /^[\x21-\x7e]+$/;
+
+/** 지금 설정에서 빠졌거나 잘못된 환경변수 이름 목록(값은 보여 주지 않는다). */
 export function missingCollectEnv(sourceId: string): string[] {
   const names = ["SUPABASE_URL", "SUPABASE_SECRET_KEY", ...(SOURCES[sourceId]?.requiredEnv ?? [])];
-  return names.filter((name) => !process.env[name]);
+  return names.flatMap((name) => {
+    const value = process.env[name];
+    if (!value) return [name];
+    if (value.includes("•")) return [`${name} (가려진 값 '•' 이 들어 있음 — 복사 버튼으로 다시 복사)`];
+    if (!PRINTABLE_ASCII.test(value)) return [`${name} (공백이나 허용되지 않는 글자가 들어 있음)`];
+    return [];
+  });
 }
 
 export async function runCollection(sourceId: string): Promise<CollectOutcome> {
@@ -89,14 +98,16 @@ export async function runCollection(sourceId: string): Promise<CollectOutcome> {
     const notBefore = new Date(Date.now() - days * 86_400_000);
     const items = await withRetry(() => source.fetchItems({ notBefore }));
 
-    // 같은 응답 안의 중복도 먼저 걸러 낸다.
+    // 같은 응답 안의 중복을 먼저 걸러 내고, 주제와 관련 없는 결과는 저장하지 않는다.
     const unique = new Map<string, CollectedItem>();
     for (const item of items) if (!unique.has(item.dedupKey)) unique.set(item.dedupKey, item);
+    const relevant = [...unique.values()].filter((item) => source.isRelevant?.(item) ?? true);
+    const excluded = unique.size - relevant.length;
 
     // 4) 저장. kst_date · date_basis · expires_at 은 DB 트리거가 채운다.
     let newCount = 0;
-    if (unique.size > 0) {
-      const rows = [...unique.values()].map((item) => ({
+    if (relevant.length > 0) {
+      const rows = relevant.map((item) => ({
         source_id: sourceId,
         dedup_key: item.dedupKey,
         title: item.title,
@@ -119,7 +130,7 @@ export async function runCollection(sourceId: string): Promise<CollectOutcome> {
 
     // 5) 성공
     await finish({ status: "success", new_count: newCount });
-    return { status: "success", fetched: unique.size, newCount };
+    return { status: "success", fetched: unique.size, excluded, newCount };
   } catch (e) {
     const error = errorText(e);
     console.error(`[collect:${sourceId}]`, error);
