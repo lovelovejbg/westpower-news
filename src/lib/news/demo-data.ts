@@ -111,6 +111,7 @@ function makeArticles(date: string, count: number, lastCollectMinute: number): A
       press: DEMO_PRESS[(i + seeded(date, 4)) % DEMO_PRESS.length],
       // example.com 은 문서·시연용으로 예약된 주소라 실제 기사로 오해될 일이 없다.
       url: `https://example.com/demo-news/${date}/${i + 1}`,
+      portalUrl: null,
       // 이미지 주소가 있어도 이용 허락(imageAllowed)이 없으면 사진 대신 분류 색·아이콘을 쓴다.
       imageUrl: i % 3 === 0 ? `https://example.com/demo-news/${date}/${i + 1}.jpg` : null,
       imageAllowed: false,

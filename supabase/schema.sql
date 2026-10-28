@@ -49,7 +49,8 @@ create table if not exists public.articles (
   key_points         text[] not null default '{}',   -- 핵심 내용(허락된 출처만)
   full_text          text,                           -- 전문(허락된 출처만)
   press              text not null check (length(btrim(press)) between 1 and 100),
-  url                text not null check (url ~ '^https?://'),
+  url                text not null check (url ~ '^https?://'),          -- 언론사 원문 주소
+  portal_url         text check (portal_url is null or portal_url ~ '^https?://'), -- 포털(네이버 뉴스 등) 주소
   image_url          text check (image_url is null or image_url ~ '^https?://'),
   image_allowed      boolean not null default false,
   category           text not null default '기타'

@@ -2,7 +2,7 @@
 
 한국서부발전 관련 뉴스를 날짜별 겹친 카드로 보여 주는 웹앱입니다.
 
-> 현재 단계: **2단계(DB 저장 · 조회)** 완료. 뉴스 자동 수집(3단계)은 아직 없습니다.
+> 현재 단계: **3단계(네이버 뉴스 자동 수집)** 코드 완료.
 > DB 환경변수가 없으면 화면의 기사는 모두 **'시연용 데이터'** 입니다(실제 기사 아님).
 > DB 가 연결되면 DB 에 있는 기사만 보여 주며 시연용 데이터를 섞지 않습니다.
 
@@ -50,5 +50,41 @@ npm run dev      # 개발 서버 → http://localhost:3000
 
 조작: 날짜 화살표 · 날짜 눌러 달력 · '오늘' / 뒤 카드 클릭 · '이전/다음 기사' · 키보드 ← → · 휴대폰 좌우 밀기 / 앞 카드 클릭 → 상세, ESC 로 닫기
 
-## 다음 단계
-- 3단계: 뉴스 자동 수집 (출처 모듈 · 관리자 '지금 수집' · 수집 기록)
+## 3단계: 네이버 뉴스 자동 수집
+
+출처: [네이버 검색 API(뉴스)](https://developers.naver.com/docs/serviceapi/search/news/news.md), 검색어 '한국서부발전', 최신순.
+[이용약관](https://developers.naver.com/products/terms/) '네이버 검색 API 서비스'에 맞춘 것:
+
+| 약관 | 이 앱에서 |
+| --- | --- |
+| 2.1 네이버 검색결과임을 표시 | 카드 · 상세에 "네이버 검색결과" 표시 |
+| 2.2 가공 없이 노출, 출처 · 원본 링크 | 강조 태그 · HTML 기호만 글자로 되돌림. 분류 · 언론사 이름을 추측하지 않음(언론사 칸 = 원문 도메인). 원문 · 네이버 뉴스 링크 제공 |
+| 2.3 AI 입력 · 광고 수익 금지 | AI 요약 없음, 광고 없음. 발췌문은 "검색 결과 발췌"로 표시 |
+| 2.4 서버 보관 최대 21일, 경과 시 지체 없이 삭제 | 보관 20일. 만료 즉시 화면에서 숨김, 매시간 삭제 |
+
+한계: 네이버 검색 결과가 서부발전 기사를 빠짐없이 담는다고 보장하지 않습니다. 수집을 시작하기 전 날짜는 채울 수 없고, 20일이 지난 날짜는 다시 비게 됩니다.
+
+### 3단계 설정 순서
+
+1. **무작위 값 2개 만들기** (`ADMIN_SESSION_SECRET`, `CRON_SECRET` 용). PowerShell 에서 두 번 실행:
+   ```powershell
+   # 32바이트 암호학적 난수 → 글자로 바꿔 출력
+   $b = New-Object byte[] 32; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); [Convert]::ToBase64String($b)
+   ```
+2. **Vercel 환경변수** (Settings → Environment Variables): `SUPABASE_SECRET_KEY`, `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET`,
+   `ADMIN_PASSWORD`(10자 이상), `ADMIN_SESSION_SECRET`, `CRON_SECRET`
+3. **Supabase Vault 에 호출 토큰 저장** — SQL Editor 에서 직접 입력하고 실행(이 줄은 파일로 저장하지 않기):
+   ```sql
+   select vault.create_secret('여기에 CRON_SECRET 과 같은 값', 'collect_cron_token');
+   ```
+4. **`supabase/stage3.sql` 실행** — 네이버 출처 등록, `portal_url` 칸 추가, 매시 수집 · 매시 만료 삭제 예약
+5. Vercel **Redeploy** → `/admin` 로그인 → **지금 수집**
+
+수집 주기 바꾸기: `stage3.sql` 4번 블록의 `'0 * * * *'` 를 고쳐 그 블록만 다시 실행.
+예약 작업 실행 결과 확인: `select * from cron.job_run_details order by start_time desc limit 10;`
+
+### 구조
+- `src/lib/news/sources/` 출처 모듈(`naver.ts`). 새 출처는 `SourceModule` 모양으로 만들어 `index.ts` 에 등록
+- `src/lib/news/collect.ts` 수집 한 번: 동시 실행 방지(DB) · 일시적 오류만 최대 2번 재시도 · 새 기사만 저장 · 기록
+- `src/app/admin/` 관리자 로그인 · 지금 수집 · 수집 기록(오류 포함)
+- `src/app/api/collect` 예약 작업용 주소(`Authorization: Bearer CRON_SECRET` 필요)

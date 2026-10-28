@@ -29,6 +29,25 @@ export function CategoryTag({ article }: { article: Article }) {
   );
 }
 
+/** 네이버 검색 API 결과인지. 약관 2.1 에 따라 화면에 '네이버 검색결과'임을 표시한다. */
+export function isNaverResult(article: Article): boolean {
+  return article.source === "naver";
+}
+
+/**
+ * 카드·상세 머리의 표시.
+ * 네이버 결과는 분류를 추측하지 않으므로 분류 태그 대신 '네이버 검색결과' 표시를 보여 준다.
+ */
+export function SourceOrCategoryTag({ article }: { article: Article }) {
+  if (!isNaverResult(article)) return <CategoryTag article={article} />;
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-[#03c75a] px-2.5 py-0.5 text-xs font-bold text-white">
+      <span aria-hidden="true" className="font-black">N</span>
+      네이버 검색결과
+    </span>
+  );
+}
+
 /** 카드·상세에 쓰는 시간 글자. 발행시각이 없으면 '수집 ○시'라고 기준을 밝힌다. */
 export function articleTimeLabel(article: Article): string {
   return article.publishedAt
@@ -67,7 +86,7 @@ export default function NewsCard({ article, interactive, onOpenDetail, detailBut
 
         {/* 태그와 아이콘을 한 줄에 둬서, 제목이 길어져도 아이콘을 가리지 않게 한다. */}
         <div className="relative flex items-center gap-2">
-          <CategoryTag article={article} />
+          <SourceOrCategoryTag article={article} />
           {article.isDemo && (
             <span className="rounded-full bg-white/80 px-2 py-0.5 text-[11px] font-semibold text-navy-soft ring-1 ring-slate-300">
               시연용

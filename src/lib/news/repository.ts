@@ -19,6 +19,7 @@ interface ArticleRow {
   full_text: string | null;
   press: string;
   url: string;
+  portal_url: string | null;
   image_url: string | null;
   image_allowed: boolean;
   category: Category;
@@ -38,7 +39,7 @@ interface RunRow {
 }
 
 const ARTICLE_COLUMNS =
-  "id, source_id, dedup_key, title, description, summary_kind, key_points, full_text, press, url, " +
+  "id, source_id, dedup_key, title, description, summary_kind, key_points, full_text, press, url, portal_url, " +
   "image_url, image_allowed, category, published_at, first_collected_at, kst_date, date_basis, is_demo, " +
   "sources(label)";
 
@@ -52,6 +53,7 @@ function toArticle(row: ArticleRow): Article {
     fullText: row.full_text,
     press: row.press,
     url: row.url,
+    portalUrl: row.portal_url,
     imageUrl: row.image_url,
     imageAllowed: row.image_allowed,
     category: row.category,

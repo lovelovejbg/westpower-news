@@ -27,7 +27,10 @@ export interface Article {
   /** 전문. 전문 이용이 허락된 출처만 채운다. */
   fullText: string | null;
   press: string;
+  /** 언론사 원문 주소 */
   url: string;
+  /** 포털(예: 네이버 뉴스)에서 같은 기사를 보는 주소. 원문 주소와 같거나 없으면 null. */
+  portalUrl: string | null;
   /** 이미지 주소와, 그 이미지를 화면에 써도 되는지 여부. 둘 다 참일 때만 사진을 보여 준다. */
   imageUrl: string | null;
   imageAllowed: boolean;

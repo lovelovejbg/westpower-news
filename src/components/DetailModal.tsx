@@ -11,7 +11,7 @@ import { useEffect, useRef } from "react";
 import { formatKstDateTime } from "@/lib/news/date";
 import { SUMMARY_LABEL } from "@/lib/news/summary";
 import type { Article } from "@/lib/news/types";
-import { CategoryIcon, CategoryTag } from "./NewsCard";
+import { CategoryIcon, SourceOrCategoryTag } from "./NewsCard";
 
 interface DetailModalProps {
   article: Article | null;
@@ -69,7 +69,7 @@ export default function DetailModal({ article, onClose }: DetailModalProps) {
           <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-100 px-5 py-3 sm:px-7">
             <div className="flex items-center gap-2">
               <CategoryIcon article={article} className="size-6" />
-              <CategoryTag article={article} />
+              <SourceOrCategoryTag article={article} />
               {article.isDemo && <span className="text-xs font-semibold text-navy-soft">시연용 데이터</span>}
             </div>
             <button
@@ -92,7 +92,8 @@ export default function DetailModal({ article, onClose }: DetailModalProps) {
             </h2>
 
             <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
-              <dt className="text-navy-soft">언론사</dt>
+              {/* 네이버 결과는 언론사 이름을 주지 않아, 추측하지 않고 원문 사이트 주소를 보여 준다. */}
+              <dt className="text-navy-soft">{article.source === "naver" ? "원문 사이트" : "언론사"}</dt>
               <dd className="font-semibold">{article.press}</dd>
               <dt className="text-navy-soft">발행 시각</dt>
               <dd>
@@ -146,12 +147,23 @@ export default function DetailModal({ article, onClose }: DetailModalProps) {
           </div>
 
           {/* 아래: 원문 링크 (항상 보이게 고정) */}
-          <div className="shrink-0 border-t border-slate-100 px-5 py-4 sm:px-7">
+          <div className="flex shrink-0 flex-col gap-2 border-t border-slate-100 px-5 py-4 sm:flex-row sm:px-7">
+            {article.portalUrl && (
+              <a
+                href={article.portalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold text-navy ring-1 ring-slate-300 transition hover:bg-slate-50 sm:shrink-0"
+              >
+                네이버 뉴스에서 보기
+                <span className="sr-only">(새 창에서 열림)</span>
+              </a>
+            )}
             <a
               href={article.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-accent px-5 py-3 font-semibold text-white transition hover:bg-blue-700"
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-accent sm:flex-1 px-5 py-3 font-semibold text-white transition hover:bg-blue-700"
             >
               원문 기사 보기{article.isDemo && " (시연용 주소)"}
               <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
