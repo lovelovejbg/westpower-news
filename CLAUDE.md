@@ -8,7 +8,7 @@
 
 ## 기술 스택
 - Next.js 16 (App Router, Cache Components 켜짐) + TypeScript + Tailwind CSS v4
-- DB: Supabase(PostgreSQL) — 뉴스 브리핑 전용 프로젝트 (2단계에서 연결)
+- DB: Supabase(PostgreSQL) — 뉴스 브리핑 전용 프로젝트 (환경변수 `SUPABASE_URL` · `SUPABASE_PUBLISHABLE_KEY`)
 - 배포: Vercel
 - 시간대: 모든 날짜·시각은 Asia/Seoul(KST). `src/lib/news/date.ts` 의 함수만 쓴다.
 
@@ -17,11 +17,19 @@
 - `src/components/` — DateNav(날짜) · CardStack(겹친 카드) · NewsCard(카드 한 장) · DetailModal(상세) · CollectStatus(수집 상태) · EmptyState(빈 상태)
 - `src/lib/news/types.ts` — 기사·하루치 결과 타입 (DB 열과 맞춘다)
 - `src/lib/news/repository.ts` — 화면이 데이터를 받는 유일한 입구 (서버 전용)
-- `src/lib/news/demo-data.ts` — '시연용 데이터' 생성기
+- `src/lib/news/demo-data.ts` — '시연용 데이터' 생성기 (DB 환경변수가 없을 때만 사용)
+- `src/lib/news/supabase.ts` — 서버 전용 읽기 클라이언트 (공개용 키, RLS 로 읽기만)
+- `supabase/schema.sql` — 표 · 권한 · 트리거. DB 구조를 바꾸면 이 파일도 함께 고친다(다시 실행해도 안전하게).
+- `supabase/test-data*.sql` — 연결 확인용 `[테스트]` 데이터 넣기 / 지우기
+
+## DB 규칙
+- DB 가 연결되면 시연용 데이터를 섞지 않는다.
+- 출처 이용 조건(`sources`)은 DB 트리거가 강제한다. 앱에서 우회하지 않는다.
+- 쓰기는 서버 비밀 키로만. 공개 키에는 쓰기 정책을 만들지 않는다. `collect_runs.error` 는 공개하지 않는다.
 
 ## 단계 (우선순위: 날짜 탐색 → 겹친 카드 → 상세 보기 → DB 저장·조회 → 뉴스 자동 수집)
 - 1단계: 날짜 탐색 · 겹친 카드 · 상세 보기 — 완료 (시연용 데이터)
-- 2단계: DB 저장 · 조회 (Supabase)
+- 2단계: DB 저장 · 조회 (Supabase) — 완료
 - 3단계: 뉴스 자동 수집 (출처 모듈 · 관리자 '지금 수집' · 수집 기록)
 
 ## 작업 방식
