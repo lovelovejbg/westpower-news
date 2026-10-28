@@ -53,9 +53,10 @@ export default function DateNav({ date, today, onChange }: DateNavProps) {
             aria-haspopup="dialog"
             aria-expanded={open}
             aria-label={`${dateText} ${weekday}, 달력 열기`}
-            className="group flex flex-col items-center rounded-2xl px-3 py-1 transition hover:bg-white/70"
+            className="group flex flex-col items-center rounded-2xl px-2 py-1 transition hover:bg-white/70 sm:px-3"
           >
-            <span className="flex items-center gap-1.5 text-2xl font-bold tracking-tight sm:text-4xl">
+            {/* 좁은 휴대폰(360px)에서도 날짜가 두 줄로 갈라지지 않게 한 줄 고정 + 글자 크기 조절 */}
+            <span className="flex items-center gap-1 whitespace-nowrap text-[1.375rem] font-bold tracking-tight min-[400px]:text-2xl sm:gap-1.5 sm:text-4xl">
               {dateText}
               <svg viewBox="0 0 24 24" className="size-5 text-navy-soft transition group-hover:text-accent" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
                 <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />

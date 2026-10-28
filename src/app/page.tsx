@@ -53,7 +53,7 @@ function BriefingSkeleton() {
       <div className="h-11 w-64 rounded-2xl bg-slate-200" />
       <div className="h-6 w-20 rounded-full bg-slate-200" />
       <div className="h-5 w-56 rounded-full bg-slate-200" />
-      <div className="mt-2 h-[23rem] w-full rounded-3xl bg-white shadow-card" />
+      <div className="mt-2 h-[25rem] w-full rounded-3xl bg-white shadow-card" />
     </div>
   );
 }

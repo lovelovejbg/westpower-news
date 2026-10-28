@@ -137,7 +137,7 @@ export default function CardStack({ articles, index, onIndexChange, onOpenDetail
   }
 
   return (
-    <section aria-label="기사 카드" aria-roledescription="카드 묶음" onKeyDown={onKeyDown} className="w-full [--card-h:23rem] [--peek:14px] sm:[--card-h:22rem] sm:[--peek:22px]">
+    <section aria-label="기사 카드" aria-roledescription="카드 묶음" onKeyDown={onKeyDown} className="w-full [--card-h:25rem] [--peek:14px] sm:[--card-h:24rem] sm:[--peek:22px]">
       {/* 지나간 카드가 밖으로 나갈 때 가로 스크롤이 생기지 않게 잘라 내되, 카드 그림자가 잘리지 않도록
           페이지 여백만큼 바깥으로 넓힌 상자(-mx/px)에서 자른다. */}
       <div className="-mx-4 overflow-x-clip px-4 sm:-mx-6 sm:px-6">

@@ -1,12 +1,13 @@
 "use client";
 
 // 기사 카드 한 장의 "모양"만 담당한다(겹치기·이동은 CardStack 이 한다).
-// 앞면 구성: 분류 태그 · 제목(강조) · 짧은 설명 · 언론사와 시간 · 상세 아이콘
+// 앞면 구성: 위 = 분류 태그 · 제목(강조) / 아래 = 요약(종류 표시) · 언론사와 시간 · 상세 아이콘
 // 사진은 이용 허락(imageAllowed)이 있을 때만. 없으면 분류 색과 아이콘을 쓴다.
 
 import type { Ref } from "react";
 import { CATEGORY_STYLES } from "@/lib/news/category";
 import { formatKstTime } from "@/lib/news/date";
+import { SUMMARY_LABEL } from "@/lib/news/summary";
 import type { Article } from "@/lib/news/types";
 
 /** 분류 아이콘(SVG). 상세 보기에서도 쓴다. */
@@ -51,37 +52,52 @@ export default function NewsCard({ article, interactive, onOpenDetail, detailBut
 
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-3xl bg-white shadow-card ring-1 ring-slate-200/70">
-      {/* 위쪽 그림 자리: 허락된 사진, 아니면 분류 색 + 아이콘 */}
-      <div className={`relative h-24 shrink-0 bg-gradient-to-br sm:h-28 ${style.panel}`}>
+      {/* ── 위: 분류 태그 + 제목 ──
+          배경은 허락된 사진(어둡게 덮어 흰 글자), 아니면 분류 색 + 아이콘. */}
+      <div className={`relative flex h-48 shrink-0 flex-col gap-3 bg-gradient-to-br px-5 pb-4 pt-4 sm:px-6 ${style.panel}`}>
         {showPhoto ? (
-          // 허락된 외부 이미지만 들어오므로 next/image 대신 일반 img 를 쓴다(도메인 설정 불필요).
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={article.imageUrl!} alt="" className="size-full object-cover" loading="lazy" />
-        ) : (
-          <CategoryIcon article={article} className="absolute right-5 top-1/2 size-14 -translate-y-1/2 opacity-80 sm:size-16" />
-        )}
-        <div className="absolute left-5 top-4 flex items-center gap-2">
+          <>
+            {/* 허락된 외부 이미지만 들어오므로 next/image 대신 일반 img 를 쓴다(도메인 설정 불필요). */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={article.imageUrl!} alt="" className="absolute inset-0 size-full object-cover" loading="lazy" />
+            {/* 사진 위에서도 제목이 읽히도록 아래쪽을 어둡게 */}
+            <div className="absolute inset-0 bg-gradient-to-t from-navy/85 via-navy/40 to-transparent" aria-hidden="true" />
+          </>
+        ) : null}
+
+        {/* 태그와 아이콘을 한 줄에 둬서, 제목이 길어져도 아이콘을 가리지 않게 한다. */}
+        <div className="relative flex items-center gap-2">
           <CategoryTag article={article} />
           {article.isDemo && (
             <span className="rounded-full bg-white/80 px-2 py-0.5 text-[11px] font-semibold text-navy-soft ring-1 ring-slate-300">
               시연용
             </span>
           )}
+          {!showPhoto && <CategoryIcon article={article} className="ml-auto size-9 opacity-70" />}
         </div>
-      </div>
 
-      <div className={`flex min-h-0 flex-1 flex-col px-5 pb-4 pt-4 sm:px-6 ${contentFade}`}>
         {/* 긴 제목은 3줄까지만 보이고 나머지는 … 처리. 전체 제목은 상세 보기에서. */}
-        <h3 className="line-clamp-3 text-lg font-bold leading-snug sm:text-xl" title={article.title}>
+        <h3
+          className={`relative mt-auto line-clamp-3 text-xl font-bold leading-snug sm:text-[22px] ${showPhoto ? "text-white" : "text-navy"} ${contentFade}`}
+          title={article.title}
+        >
           {article.title}
         </h3>
+      </div>
+
+      {/* ── 아래: 요약(또는 발췌·시연용 설명) + 언론사·시간 ── */}
+      <div className={`flex min-h-0 flex-1 flex-col px-5 pb-4 pt-4 sm:px-6 ${contentFade}`}>
         {article.description ? (
-          <p className="mt-2 line-clamp-3 text-[15px] leading-relaxed text-navy-soft">{article.description}</p>
+          <>
+            {/* 글의 종류를 꼭 밝힌다: 검색 발췌를 '요약'이라고 부르지 않는다. */}
+            <p className="text-xs font-bold text-accent">{SUMMARY_LABEL[article.summaryKind].title}</p>
+            <p className="mt-1 line-clamp-3 text-[15px] leading-relaxed text-navy-soft">{article.description}</p>
+          </>
         ) : (
-          <p className="mt-2 text-sm text-slate-400">제공된 설명이 없습니다.</p>
+          <p className="text-sm text-slate-400">제공된 요약이 없습니다. 상세 보기나 원문에서 확인해 주세요.</p>
         )}
 
-        <div className="mt-auto flex items-center justify-between gap-3 pt-3">
+        <div className="mt-auto flex items-center justify-between gap-3 border-t border-slate-100 pt-3">
           <p className="min-w-0 truncate text-sm text-navy-soft">
             <span className="font-semibold text-navy">{article.press}</span>
             <span aria-hidden="true"> · </span>
