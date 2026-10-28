@@ -1,5 +1,7 @@
-// 네이버 검색 API(뉴스) 출처 모듈.
-// 문서: https://developers.naver.com/docs/serviceapi/search/news/news.md
+// 네이버 검색 API(뉴스) 출처 모듈 — NAVER API HUB(네이버 클라우드 플랫폼) 경유.
+// 2026-07-31 부터 네이버 개발자센터의 검색 API 신규 신청이 막혀 NAVER API HUB 로 옮겨졌다.
+//   공지: https://developers.naver.com/notice/article/32530
+//   문서: https://api.ncloud-docs.com/docs/naver-api-hub-search-news (요청 조건 · 응답 모양은 개발자센터와 같음)
 // 약관: https://developers.naver.com/products/terms/ ('네이버 검색 API 서비스' 2.1~2.4)
 //
 // 지키는 것
@@ -11,7 +13,7 @@
 import "server-only";
 import { RetryableError, type CollectedItem, type FetchOptions, type SourceModule } from "./types";
 
-const ENDPOINT = "https://openapi.naver.com/v1/search/news.json";
+const ENDPOINT = "https://naverapihub.apigw.ntruss.com/search/v1/news";
 const QUERY = "한국서부발전";
 const PAGE_SIZE = 100; // API 최댓값
 const MAX_PAGES = 3; // 한 번 수집에 최대 300건(호출 3회)
@@ -109,12 +111,13 @@ async function fetchPage(start: number, clientId: string, clientSecret: string):
     display: String(PAGE_SIZE),
     start: String(start),
     sort: "date",
+    format: "json",
   })}`;
 
   let res: Response;
   try {
     res = await fetch(url, {
-      headers: { "X-Naver-Client-Id": clientId, "X-Naver-Client-Secret": clientSecret },
+      headers: { "X-NCP-APIGW-API-KEY-ID": clientId, "X-NCP-APIGW-API-KEY": clientSecret },
       cache: "no-store",
       signal: AbortSignal.timeout(15_000),
     });
@@ -126,7 +129,7 @@ async function fetchPage(start: number, clientId: string, clientSecret: string):
     // 응답 본문에는 키가 들어 있지 않다. 원인 파악을 위해 앞부분만 남긴다.
     const body = (await res.text().catch(() => "")).slice(0, 300);
     const message = `네이버 API 오류 ${res.status}: ${body}`;
-    // 429(호출 한도)·5xx 는 잠시 뒤 다시 시도할 만하다. 401/403(키·권한) 등은 다시 해도 같다.
+    // 429(호출 한도)·5xx 는 잠시 뒤 다시 시도할 만하다. 401(키 오류 · 앱에 뉴스 검색 API 권한 없음) 등은 다시 해도 같다.
     if (res.status === 429 || res.status >= 500) throw new RetryableError(message);
     throw new Error(message);
   }

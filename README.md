@@ -52,7 +52,8 @@ npm run dev      # 개발 서버 → http://localhost:3000
 
 ## 3단계: 네이버 뉴스 자동 수집
 
-출처: [네이버 검색 API(뉴스)](https://developers.naver.com/docs/serviceapi/search/news/news.md), 검색어 '한국서부발전', 최신순.
+출처: 네이버 검색 API(뉴스) — [NAVER API HUB](https://api.ncloud-docs.com/docs/naver-api-hub-search-news) 경유, 검색어 '한국서부발전', 최신순.
+2026-07-31 부터 네이버 개발자센터의 검색 API 신규 신청이 막혀 네이버 클라우드 플랫폼의 NAVER API HUB 에서 키를 받아야 합니다([공지](https://developers.naver.com/notice/article/32530)).
 [이용약관](https://developers.naver.com/products/terms/) '네이버 검색 API 서비스'에 맞춘 것:
 
 | 약관 | 이 앱에서 |
@@ -71,7 +72,7 @@ npm run dev      # 개발 서버 → http://localhost:3000
    # 32바이트 암호학적 난수 → 글자로 바꿔 출력
    $b = New-Object byte[] 32; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); [Convert]::ToBase64String($b)
    ```
-2. **Vercel 환경변수** (Settings → Environment Variables): `SUPABASE_SECRET_KEY`, `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET`,
+2. **Vercel 환경변수** (Settings → Environment Variables): `SUPABASE_SECRET_KEY`, `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET`(NAVER API HUB 인증 정보),
    `ADMIN_PASSWORD`(10자 이상), `ADMIN_SESSION_SECRET`, `CRON_SECRET`
 3. **Supabase Vault 에 호출 토큰 저장** — SQL Editor 에서 직접 입력하고 실행(이 줄은 파일로 저장하지 않기):
    ```sql
